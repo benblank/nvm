@@ -1,0 +1,44 @@
+#!/bin/sh
+
+set -ex
+
+unset NODE_PATH
+export NVM_MODIFY_NODE_PATH=true
+\. ../../nvm.sh
+
+rm -rf "$NVM_DIR/v0.9.7"
+mkdir "$NVM_DIR/v0.9.7"
+nvm use --delete-prefix 0.9.7
+rmdir "$NVM_DIR/v0.9.7"
+
+if [ -z "$NODE_PATH" ];then
+  echo "Expected \$NODE_PATH to be set!"
+  exit 1
+fi
+
+if [ "$NODE_PATH" != "$NVM_DIR/v0.9.7/lib/node_modules" ];then
+  echo "Expected \$NODE_PATH to point to v0.9.7 but was $NODE_PATH"
+  exit 1
+fi
+
+rm -rf "$NVM_DIR/v0.10.29"
+mkdir "$NVM_DIR/v0.10.29"
+nvm use --delete-prefix 0.10.29
+rmdir "$NVM_DIR/v0.10.29"
+
+if [ "$NODE_PATH" != "$NVM_DIR/v0.10.29/lib/node_modules" ];then
+  echo "Expected \$NODE_PATH to point to v0.10.29 but was $NODE_PATH"
+  exit 1
+fi
+
+export NODE_PATH="$NODE_PATH:foo:bar"
+
+rm -rf "$NVM_DIR/v0.11.13"
+mkdir "$NVM_DIR/v0.11.13"
+nvm use --delete-prefix 0.11.13
+rmdir "$NVM_DIR/v0.11.13"
+
+if [ "$NODE_PATH" != "$NVM_DIR/v0.11.13/lib/node_modules:foo:bar" ];then
+  echo "Expected \$NODE_PATH to include its previous value (foo:bar) but was $NODE_PATH"
+  exit 1
+fi

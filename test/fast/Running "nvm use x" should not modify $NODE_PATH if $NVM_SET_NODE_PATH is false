@@ -1,0 +1,85 @@
+#!/bin/sh
+
+set -ex
+
+\. ../../nvm.sh
+
+TEST_NODE_VERSION="v0.10.29"
+
+TEST_COUNT=0
+TEST_PASSED=0
+TEST_FAILED=0
+
+registerExpectedNodePath() {
+  registerResult ${1}
+}
+
+registerExpectedNoNodePath() {
+  [ $1 -ne 0 ]
+  registerResult $?
+}
+
+registerResult() {
+  result="${1}"
+
+  TEST_COUNT=$(($TEST_COUNT + 1))
+
+  [ ${result} -eq 0 ] \
+    && TEST_PASSED=$(($TEST_PASSED + 1)) \
+    || TEST_FAILED=$(($TEST_FAILED + 1))
+}
+
+cleanup() {
+  rm -rf "${NVM_DIR}/${TEST_NODE_VERSION}"
+  unset NODE_PATH
+}
+
+runNvmUse() {
+  mkdir "${NVM_DIR}/${TEST_NODE_VERSION}"
+  nvm use --delete-prefix "${TEST_NODE_VERSION}" > /dev/null 2>&1
+  rmdir "${NVM_DIR}/${TEST_NODE_VERSION}"
+}
+
+isNodePathSet() {
+  [ -n "$NODE_PATH" ]
+}
+
+NVM_MODIFY_NODE_PATH=false
+cleanup
+runNvmUse
+isNodePathSet && echo >&2 "Expected NODE_PATH not to be modified when NVM_MODIFY_NODE_PATH=false!"
+registerExpectedNoNodePath $?
+
+NVM_MODIFY_NODE_PATH=true
+cleanup
+runNvmUse
+isNodePathSet || echo >&2 "Expected NODE_PATH to be modified when NVM_MODIFY_NODE_PATH=true!"
+registerExpectedNodePath $?
+
+NVM_MODIFY_NODE_PATH=garbagevalue
+cleanup
+runNvmUse
+isNodePathSet && echo >&2 "Expected NODE_PATH not to be modified when NVM_MODIFY_NODE_PATH contains a string!"
+registerExpectedNoNodePath $?
+
+NVM_MODIFY_NODE_PATH=0
+cleanup
+runNvmUse
+isNodePathSet && echo >&2 "Expected NODE_PATH not to be modified when NVM_MODIFY_NODE_PATH=0!"
+registerExpectedNoNodePath $?
+
+NVM_MODIFY_NODE_PATH=1
+cleanup
+runNvmUse
+isNodePathSet && echo >&2 "Expected NODE_PATH not to be modified when NVM_MODIFY_NODE_PATH=1!"
+registerExpectedNoNodePath $?
+
+unset NVM_MODIFY_NODE_PATH
+cleanup
+runNvmUse
+isNodePathSet && echo >&2 "Expected NODE_PATH not to be modified when NVM_MODIFY_NODE_PATH has been unset (default behaviour)!"
+registerExpectedNoNodePath $?
+
+cleanup
+
+[ $TEST_FAILED -ne 0 ] && echo "${TEST_COUNT} tested, ${TEST_PASSED} passed, ${TEST_FAILED} failed" && exit 1 || true

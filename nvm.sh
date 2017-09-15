@@ -2881,6 +2881,13 @@ nvm() {
         MANPATH="$(nvm_prepend_path "$MANPATH" "$NVM_VERSION_DIR/share/man")"
         export MANPATH
       fi
+      if [ "${NVM_MODIFY_NODE_PATH-}" = true ]; then
+        # Strip previous version (if any) from NODE_PATH
+        NODE_PATH="$(nvm_strip_path "$NODE_PATH" "/lib/node_modules")"
+        # Prepend current version
+        NODE_PATH="$(nvm_prepend_path "$NODE_PATH" "$NVM_VERSION_DIR/lib/node_modules")"
+        export NODE_PATH
+      fi
       export PATH
       hash -r
       export NVM_BIN="$NVM_VERSION_DIR/bin"

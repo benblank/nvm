@@ -320,6 +320,8 @@ nvm install iojs-v1.0.3
 NVM_IOJS_ORG_MIRROR=https://iojs.org/dist nvm install iojs-v1.0.3
 ```
 
+`nvm use` will not, by default, add the global module path to the `$NODE_PATH` evironment variable. Set `$NVM_MODIFY_NODE_PATH` to "true" to enable this behavior.
+
 `nvm use` will not, by default, create a "current" symlink. Set `$NVM_SYMLINK_CURRENT` to "true" to enable this behavior, which is sometimes useful for IDEs. Note that using `nvm` in multiple shell tabs with this environment variable enabled can cause race conditions.
 
 ### .nvmrc
